@@ -48,7 +48,7 @@ class Atom:
             return
 
         self.size = header[0]
-        self.type = header[1]
+        self.type = header[1].decode('utf-8')
 
         self.dataOffset = 8
 
@@ -58,14 +58,14 @@ class Atom:
         if self.size == 1:
             s = self.unpack('!Q')
             if s is None:
-                print 'Error reading extended size'
+                print ('Error reading extended size')
                 self.size = None
                 return
             self.size = s[0]
             self.dataOffset = 16
 
     def Print(self,indent=''):
-        print indent + self.type + ' ' + str(self.size)
+        print (indent + self.type + ' ' + str(self.size))
 
     def valid(self):
         return self.type is not None and self.size >= self.dataOffset and self.endOfStorage >= self.startPosition + self.size
@@ -98,7 +98,7 @@ class ContainerAtom:
         else:
             ca = atom.childAtom(offset)
         while ca.valid():
-            if atomMap is not None and atomMap.has_key(ca.type):
+            if atomMap is not None and ca.type in  atomMap: #   .has_key(ca.type):
                 self.children.append((ca,atomMap[ca.type](ca)))
             else:
                 self.children.append([ca,None])
@@ -127,13 +127,13 @@ class FileTypeAtom:
     def __init__(self,atom):
         self.majorBrand = atom.unpackData('!4s')[0]
         self.minorVersion = atom.unpackData('!3B',4)
-        fmt = '!'+('4s'*((atom.dataSize()/4)-2))
+        fmt = '!'+('4s'*(int(atom.dataSize()/4)-2))
         self.compatibleBrands = atom.unpackData(fmt,8)
 
     def Print(self,indent):
-        print indent + str(self.majorBrand)
-        print indent + str(self.minorVersion)
-        print indent + str(self.compatibleBrands)
+        print (indent + str(self.majorBrand))
+        print (indent + str(self.minorVersion))
+        print (indent + str(self.compatibleBrands))
 
 
 
@@ -143,8 +143,8 @@ class LeafAtom:
         self.flags = atom.unpackData('!3B',1)
 
     def Print(self,indent):
-        print indent + 'version: ' + str(self.version)
-        print indent + 'flags: '+str(self.flags)
+        print (indent + 'version: ' + str(self.version))
+        print (indent + 'flags: '+str(self.flags))
 
 class HeaderAtom(LeafAtom):
     def __init__(self,atom):
@@ -154,8 +154,8 @@ class HeaderAtom(LeafAtom):
 
     def Print(self,indent):
         LeafAtom.Print(self,indent)
-        print indent + 'creation: ' + str(self.creationTime)
-        print indent + 'modification: ' + str(self.modificationTime)
+        print (indent + 'creation: ' + str(self.creationTime))
+        print (indent + 'modification: ' + str(self.modificationTime))
 
 class MovieHeaderAtom(HeaderAtom):
     def __init__(self,atom):
@@ -166,8 +166,8 @@ class MovieHeaderAtom(HeaderAtom):
 
     def Print(self,indent):
         HeaderAtom.Print(self,indent)
-        print indent + 'time scale: '+str(self.timeScale)
-        print indent + 'duration: '+str(self.duration)+' ('+str(self.duration/float(self.timeScale))+'s)'
+        print (indent + 'time scale: '+str(self.timeScale))
+        print (indent + 'duration: '+str(self.duration)+' ('+str(self.duration/float(self.timeScale))+'s)')
 
 
 class UserDataAtom (ContainerAtom):
@@ -186,8 +186,8 @@ class TrackHeaderAtom(HeaderAtom):
 
     def Print(self,indent):
         HeaderAtom.Print(self,indent)
-        print indent + 'ID: '+str(self.trackID)
-        print indent + 'W x H: '+str(self.width)+' x '+str(self.height)
+        print (indent + 'ID: '+str(self.trackID))
+        print (indent + 'W x H: '+str(self.width)+' x '+str(self.height))
 
 
 class TableAtom(LeafAtom):
@@ -206,11 +206,11 @@ class TableAtom(LeafAtom):
 
     def Print(self,indent):
         LeafAtom.Print(self,indent)
-        print indent + str(len(self.data)) + ' data items'
+        print (indent + str(len(self.data)) + ' data items')
         for i in range(len(self.data)):
             if i >= 10:
                 break
-            print indent + '  ' + str(self.data[i])
+            print (indent + '  ' + str(self.data[i]))
 
 class EditListAtom(TableAtom):
     def __init__(self,atom):
@@ -233,8 +233,8 @@ class MediaHeaderAtom(HeaderAtom):
 
     def Print(self,indent):
         HeaderAtom.Print(self,indent)
-        print indent + 'time scale: '+str(self.timeScale)
-        print indent + 'duration: '+str(self.duration)+' ('+str(self.duration/float(self.timeScale))+'s)'
+        print (indent + 'time scale: '+str(self.timeScale))
+        print (indent + 'duration: '+str(self.duration)+' ('+str(self.duration/float(self.timeScale))+'s)')
 
 
 class HandlerReferenceAtom(LeafAtom):
@@ -251,9 +251,9 @@ class HandlerReferenceAtom(LeafAtom):
 
     def Print(self,indent):
         LeafAtom.Print(self,indent)
-        print indent + 'component type: ' + str(self.componentType)
-        print indent + 'component subtype: ' + str(self.componentSubType)
-        print indent + 'component name: ' + str(self.componentName)
+        print (indent + 'component type: ' + str(self.componentType))
+        print (indent + 'component subtype: ' + str(self.componentSubType))
+        print (indent + 'component name: ' + str(self.componentName))
 
 class BaseMediaInformationAtom(ContainerAtom):
     atomMap = {}
@@ -269,7 +269,7 @@ class CountedContainerAtom(LeafAtom,ContainerAtom):
 
     def Print(self,indent):
         LeafAtom.Print(self,indent)
-        print indent + str(self.numEntries) + ' entries'
+        print (indent + str(self.numEntries) + ' entries')
         ContainerAtom.Print(self,indent)
 
 
@@ -291,7 +291,7 @@ class SampleDescription:
         self.dataReferenceIndex = atom.unpackData('!H',6)[0]
 
     def Print(self,indent):
-        print indent + 'data ref index: ' + str(self.dataReferenceIndex)
+        print (indent + 'data ref index: ' + str(self.dataReferenceIndex))
 
 class TextSampleDescription(SampleDescription):
     def __init__(self,atom):
@@ -311,8 +311,8 @@ class TextSampleDescription(SampleDescription):
 
     def Print(self,indent):
         SampleDescription.Print(self,indent)
-        print indent + ','.join((str(self.displayFlags),str(self.textJustification),str(self.bgColor),str(self.textBox),str(self.fontNumber),str(self.fontFace),str(self.fgColor)))
-        print indent + str(self.name)
+        print (indent + ','.join((str(self.displayFlags),str(self.textJustification),str(self.bgColor),str(self.textBox),str(self.fontNumber),str(self.fontFace),str(self.fgColor))))
+        print (indent + str(self.name))
 
 class SampleDescriptionAtom(CountedContainerAtom):
     atomMap = {'text':TextSampleDescription}
@@ -338,7 +338,7 @@ class SampleSizeAtom(TableAtom):
         TableAtom.__init__(self,atom,'!I',8)
 
     def Print(self,indent):
-        print indent + 'sample size:'+str(self.sampleSize)
+        print (indent + 'sample size:'+str(self.sampleSize))
         TableAtom.Print(self,indent)
 
 class ChunkOffsetAtom(TableAtom):
@@ -450,18 +450,18 @@ def LooksValid(nmea):
     return len(nmea) >= 3 and nmea[0] == '$' and nmea[-3] == '*'
 
 if len(sys.argv) < 2:
-    print 'usage: mov2nmea.py file1.mov [file2.mov ...]'
+    print ('usage: mov2nmea.py file1.mov [file2.mov ...]')
     sys.exit(1)
 
 for a in sys.argv[1:]:
     qt = QTFile(a)
-    print a
+    print (a)
     outfile = open(a+'.nmea','w')
     #qt.Print()
     tracks = qt.find('moov')[0][1].find('trak')
     text_tracks = []
     for t in tracks:
-        if t[1].find('mdia')[0][1].find('hdlr')[0][1].componentSubType == 'text':
+        if t[1].find('mdia')[0][1].find('hdlr')[0][1].componentSubType == b'text':
             #t[1].Print('')
             sc = SampleCursor(t[1])
             s = sc.nextSample()
@@ -485,7 +485,7 @@ for a in sys.argv[1:]:
             for tt in text_tracks:
                 if tt[2] is not None:
                     if tt[2][0] == nextSampleTime:
-                        lines = tt[2][1].split()
+                        lines = tt[2][1].decode('utf-8','ignore').split()
                         for l in lines:
                             if LooksValid(l):
                                 #print ','.join((str(nextSampleTime/float(tt[3])),l))
