@@ -450,10 +450,19 @@ def LooksValid(nmea):
     return len(nmea) >= 3 and nmea[0] == '$' and nmea[-3] == '*'
 
 if len(sys.argv) < 2:
-    print ('usage: mov2nmea.py file1.mov [file2.mov ...]')
+    print ('usage: mov2nmea.py [-ts] file1.mov [file2.mov ...]')
     sys.exit(1)
 
+args = []
+timestamp = False
+
 for a in sys.argv[1:]:
+    if a == '-ts':
+        timestamp = True
+    else:
+        args.append(a)
+
+for a in args:
     qt = QTFile(a)
     print (a)
     outfile = open(a+'.nmea','w')
@@ -489,7 +498,9 @@ for a in sys.argv[1:]:
                         for l in lines:
                             if LooksValid(l):
                                 #print ','.join((str(nextSampleTime/float(tt[3])),l))
-                                outfile.write(','.join((str(nextSampleTime/float(tt[3])),l))+'\n')
+                                if timestamp:
+                                    outfile.write(str(nextSampleTime/float(tt[3]))+',')
+                                outfile.write(l+'\n')
                             #print ','.join((str(nextSampleTime),str(tt[0]),l))
                         tt[2] = tt[1].nextSample()
 
