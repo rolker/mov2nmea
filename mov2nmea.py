@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#Copyright (C) 2010  Roland Arsenault
+#Copyright (C) 2010,2011  Roland Arsenault
 
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -446,19 +446,27 @@ class SampleCursor:
 
         return ret
 
-def LooksValid(nmea):
-    return len(nmea) >= 3 and nmea[0] == '$' and nmea[-3] == '*'
+def FindNmea(l):
+    if '$' in l:
+        nmea = '$'+ l.split('$',1)[1]
+        if len(nmea) >= 3 and nmea[0] == '$' and nmea[-3] == '*':
+            return nmea
+    return None
 
 if len(sys.argv) < 2:
-    print ('usage: mov2nmea.py [-ts] file1.mov [file2.mov ...]')
+    print ('usage: mov2nmea.py [-ts] [-debug] file1.mov [file2.mov ...]')
     sys.exit(1)
 
 args = []
 timestamp = False
+debug = False
 
 for a in sys.argv[1:]:
-    if a == '-ts':
-        timestamp = True
+    if a.startswith('-'):
+        if a == '-ts':
+            timestamp = True
+        if a == '-debug':
+            debug = True
     else:
         args.append(a)
 
@@ -494,13 +502,18 @@ for a in args:
             for tt in text_tracks:
                 if tt[2] is not None:
                     if tt[2][0] == nextSampleTime:
-                        lines = tt[2][1].decode('utf-8','ignore').split()
+                        #lines = tt[2][1].decode('utf-8','ignore').split()
+                        lines = tt[2][1].split()
                         for l in lines:
-                            if LooksValid(l):
+                            if debug:
+                                nmea = l
+                            else:
+                                nmea = FindNmea(l)
+                            if nmea is not None:
                                 #print ','.join((str(nextSampleTime/float(tt[3])),l))
                                 if timestamp:
                                     outfile.write(str(nextSampleTime/float(tt[3]))+',')
-                                outfile.write(l+'\n')
+                                outfile.write(nmea+'\n')
                             #print ','.join((str(nextSampleTime),str(tt[0]),l))
                         tt[2] = tt[1].nextSample()
 
