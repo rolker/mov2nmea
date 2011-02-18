@@ -420,6 +420,8 @@ class SampleCursor:
                 return None
             ss = self.sampleSizes.data[self.sampleNumber]
 
+        so = self.chunkOffsets.data[self.chunkNumber]
+
         self.sampleInChunk += 1
         if(self.sampleToChunk.data[self.sc_index][1] >= self.sampleInChunk):
             self.sampleInChunk = 0
@@ -430,8 +432,6 @@ class SampleCursor:
 
         if len(self.chunkOffsets.data) <= self.chunkNumber:
             return None
-
-        so = self.chunkOffsets.data[self.chunkNumber]
 
         self.infile.seek(so)
         data = self.infile.read(ss)
@@ -473,7 +473,7 @@ for a in sys.argv[1:]:
 for a in args:
     qt = QTFile(a)
     print (a)
-    outfile = open(a+'.nmea','w')
+    outfile = open(a+'.nmea','wt')
     #qt.Print()
     tracks = qt.find('moov')[0][1].find('trak')
     text_tracks = []
@@ -502,19 +502,16 @@ for a in args:
             for tt in text_tracks:
                 if tt[2] is not None:
                     if tt[2][0] == nextSampleTime:
-                        #lines = tt[2][1].decode('utf-8','ignore').split()
-                        lines = tt[2][1].split()
+                        lines = tt[2][1].decode('utf_8','ignore').split()
                         for l in lines:
                             if debug:
                                 nmea = l
                             else:
                                 nmea = FindNmea(l)
                             if nmea is not None:
-                                #print ','.join((str(nextSampleTime/float(tt[3])),l))
                                 if timestamp:
                                     outfile.write(str(nextSampleTime/float(tt[3]))+',')
                                 outfile.write(nmea+'\n')
-                            #print ','.join((str(nextSampleTime),str(tt[0]),l))
                         tt[2] = tt[1].nextSample()
 
         done = True
