@@ -20,87 +20,28 @@
 
 import sys
 import pylab
-import calendar
-import datetime
+import nmea
 
-times = []
-rtimes = []
-speeds = []
-altitudes = []
-lats = []
-lons = []
+data = []
 
 for arg in sys.argv[1:]:
-    times.append([])
-    rtimes.append([])
-    speeds.append([])
-    altitudes.append([])
-    lats.append([])
-    lons.append([])
-    for l in file(arg):
-        s = l.strip()
-        n = s.split(',')
-        if len(n) >= 12:
-            if n[1] == '$GPRMC':
-                n = n[1:]
-            if n[0] == '$GPRMC':
-                if len(n) >= 12 and n[2] == 'A':
-                    ts = n[1].split('.')[0]
-                    try:
-                        fs = float('.'+n[1].split('.')[1])
-                        ds = n[9]
-                        timestamp = calendar.timegm( datetime.datetime(int(ds[4:6])+2000,int(ds[2:4]),int(ds[0:2]),int(ts[0:2]),int(ts[2:4]),int(ts[4:6])).utctimetuple()) + fs
-                        sog = float(n[7])
-                        lat = float(n[3][0:2])+float(n[3][2:])/60.0
-                        if n[4] == 'S':
-                            lat = -lat
-                        lon =  float(n[5][0:3])+float(n[5][3:])/60.0
-                        if n[6] == 'W':
-                            lon = -lon
-                        if len(times[-1]) and timestamp < times[-1][-1]:
-                            print n
-                        else:
-                            times[-1].append(timestamp)
-                            speeds[-1].append(sog*1.15)
-                            lats[-1].append(lat)
-                            lons[-1].append(lon)
-                    except ValueError:
-                        pass
-
-        if len(n) >= 15:
-            if n[1] == '$GPGGA':
-                n = n[1:]
-            if n[0] == '$GPGGA':
-                if len(n) >= 15:
-                    try:
-                        a = float(n[9])
-                        while len(altitudes[-1]) < len(times[-1]):
-                            altitudes[-1].append(a)
-                    except ValueError:
-                        pass
-
-    if len(altitudes[-1]):
-        while len(altitudes[-1]) < len(times[-1]):
-            altitudes[-1].append(altitudes[-1][-1])
-
-    for t in times[-1]:
-        rtimes[-1].append(t-times[-1][0])
+    data.append(nmea.Nmea(arg))
 
 pylab.figure()
-for i in range(len(rtimes)):
-    pylab.plot(rtimes[i],speeds[i])
+for d in data:
+    pylab.plot(d.rtimes,d.speeds)
 pylab.xlabel('time (s)')
 pylab.ylabel('speed (mph)')
 
 pylab.figure()
-for i in range(len(rtimes)):
-    pylab.plot(rtimes[i],altitudes[i])
+for d in data:
+    pylab.plot(d.rtimes,d.altitudes)
 pylab.xlabel('time (s)')
 pylab.ylabel('altitude (m)')
 
 pylab.figure()
-for i in range(len(rtimes)):
-    pylab.plot(lons[i],lats[i])
+for d in data:
+    pylab.plot(d.lons,d.lats)
 pylab.xlabel('latitude (deg)')
 pylab.ylabel('longitude (deg)')
 
