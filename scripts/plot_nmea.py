@@ -20,12 +20,12 @@
 
 import sys
 import pylab
-import nmea
+import gpsvideo
 
 data = []
 
 for arg in sys.argv[1:]:
-    data.append(nmea.Nmea(arg))
+    data.append(gpsvideo.nmea.Nmea(arg))
 
 pylab.figure()
 for d in data:

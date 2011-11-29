@@ -1,0 +1,19 @@
+mov2nmea
+
+Install:
+
+python setup.py install
+
+Usage:
+
+Creating a file with gps data from NMEA sentences embedded as subtitles in a mov file:
+
+mov2nmea.py input.mov
+
+Quickly plotting gps data from NMEA sentences (must have pylab package installed):
+
+plot_nmea.py input.nmea
+
+For more information, see the project page.
+
+http://code.google.com/p/mov2nmea/

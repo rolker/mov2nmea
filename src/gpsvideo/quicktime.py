@@ -17,8 +17,6 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-
-import sys
 import struct
 
 class Atom:
@@ -445,78 +443,3 @@ class SampleCursor:
         self.sampleNumber += 1
 
         return ret
-
-def FindNmea(l):
-    if '$' in l:
-        nmea = '$'+ l.split('$',1)[1]
-        if len(nmea) >= 3 and nmea[0] == '$' and nmea[-3] == '*':
-            return nmea
-    return None
-
-if len(sys.argv) < 2:
-    print ('usage: mov2nmea.py [-ts] [-debug] file1.mov [file2.mov ...]')
-    sys.exit(1)
-
-args = []
-timestamp = False
-debug = False
-
-for a in sys.argv[1:]:
-    if a.startswith('-'):
-        if a == '-ts':
-            timestamp = True
-        if a == '-debug':
-            debug = True
-    else:
-        args.append(a)
-
-for a in args:
-    qt = QTFile(a)
-    print (a)
-    outfile = open(a+'.nmea','wt')
-    #qt.Print()
-    tracks = qt.find('moov')[0][1].find('trak')
-    text_tracks = []
-    for t in tracks:
-        if t[1].find('mdia')[0][1].find('hdlr')[0][1].componentSubType == b'text':
-            #t[1].Print('')
-            sc = SampleCursor(t[1])
-            s = sc.nextSample()
-            tid = t[1].find('tkhd')[0][1].trackID
-            ts = t[1].find('mdia')[0][1].find('mdhd')[0][1].timeScale
-            text_tracks.append([tid,sc,s,ts])
-
-    done = False
-    while not done:
-        nextSampleTime = None
-
-        for tt in text_tracks:
-            if tt[2] is not None:
-                if nextSampleTime is None:
-                    nextSampleTime = tt[2][0]
-                else:
-                    if tt[2][0] < nextSampleTime:
-                        nextSampleTime = tt[2][0]
-
-        if nextSampleTime is not None:
-            for tt in text_tracks:
-                if tt[2] is not None:
-                    if tt[2][0] == nextSampleTime:
-                        lines = tt[2][1].decode('utf_8','ignore').split()
-                        for l in lines:
-                            if debug:
-                                nmea = l
-                            else:
-                                nmea = FindNmea(l)
-                            if nmea is not None:
-                                if timestamp:
-                                    outfile.write(str(nextSampleTime/float(tt[3]))+',')
-                                outfile.write(nmea+'\n')
-                        tt[2] = tt[1].nextSample()
-
-        done = True
-        for tt in text_tracks:
-            if tt[2] is not None:
-                done = False
-
-
