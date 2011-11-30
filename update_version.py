@@ -10,7 +10,7 @@ for line in svninfo.splitlines():
         parts = line.split()
         if parts[0] == 'Revision:':
             version = int(parts[1])
-            version += 1
+            version
             open('VERSION','w').write('1.0.'+str(version)+'\n')
             break
         
