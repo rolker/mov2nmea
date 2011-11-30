@@ -200,6 +200,7 @@ def Gui():
     print 'Launching gui, for command line usage, launch with -h or --help'
 
     root = Tkinter.Tk()
+    root.title('mov2nmea')
     app = ArgsGui(root)
     root.mainloop()
 
