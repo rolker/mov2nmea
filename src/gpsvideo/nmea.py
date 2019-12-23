@@ -61,7 +61,7 @@ class Nmea:
                             if n[6] == 'W':
                                 lon = -lon
                             if len(self.times) and timestamp < self.times[-1]:
-                                print n
+                                print(n)
                             else:
                                 self.times.append(timestamp)
                                 self.speeds.append(sog*1.15)

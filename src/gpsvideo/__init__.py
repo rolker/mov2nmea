@@ -1,2 +1,2 @@
-import quicktime as qt
-import nmea
+from . import quicktime as qt
+from . import nmea
